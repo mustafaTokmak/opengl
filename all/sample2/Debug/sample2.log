@@ -1,0 +1,24 @@
+﻿  sample2.cpp
+c:\users\fatma\documents\visual studio 2017\projects\sample2\angel.h(68): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(698): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(699): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(700): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(721): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(723): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(726): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(743): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+  InitShader.cpp
+c:\users\fatma\documents\visual studio 2017\projects\sample2\angel.h(68): warning C4305: 'initializing': truncation from 'double' to 'GLfloat'
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(698): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(699): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(700): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(721): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(723): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(726): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\mat.h(743): warning C4244: '=': conversion from 'double' to 'GLfloat', possible loss of data
+c:\users\fatma\documents\visual studio 2017\projects\sample2\initshader.cpp(11): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.15063.0\ucrt\stdio.h(207): note: see declaration of 'fopen'
+  Generating Code...
+InitShader.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
+  sample2.vcxproj -> C:\Users\Fatma\Documents\Visual Studio 2017\Projects\sample2\Debug\sample2.exe
+  sample2.vcxproj -> C:\Users\Fatma\Documents\Visual Studio 2017\Projects\sample2\Debug\sample2.pdb (Partial PDB)
