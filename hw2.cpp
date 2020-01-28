@@ -13,10 +13,30 @@
 
 GLint windowHeight=600, windowWidth=500;
 GLint totalLane = 24+1;
+GLdouble vehicleX = -0.1;
+GLdouble vehicleV = 0.01;
+GLdouble agentX = 0.5;
+GLint agentRoad = 0;
+GLint agentLane = 0;
+GLint agentDirection = 1;
+GLint timerDifficulty = 100;
+//
 
 //-----------------------------------------------------------------------
 //	Sets up some default OpenGL values.
 //-----------------------------------------------------------------------
+//all even lane is right to left 
+// all odd lane is left to right
+struct vehicle 
+{  
+   //car type is 0 
+   //truck type is 1 
+   int type;
+   int road; 
+   int lane; 
+   int velocity;
+
+};
 
 void myInit()
 {
@@ -31,6 +51,10 @@ void myInit()
 // reshape callback function
 //	This is called each time the window is reshaped
 //-----------------------------------------------------------------------
+double getLaneSize(){
+    double sidewalks_size = 1/(windowHeight/(1.0*totalLane));
+    return sidewalks_size;
+}
 void myReshape(int winWidth, int winHeight) 
 {
     windowHeight = winHeight;
@@ -49,14 +73,94 @@ void myReshape(int winWidth, int winHeight)
   
   
 }
-void drawCar(double x,double y)
+double calculateVehicleYaxis(int road,int lane)
+{   
+    //roads and lanes indexs down to up
+    
+    //TODO this array can be global or function
+    //all road have sidewalk to bottom
+    //first road have 0 lane
+    double laneSize = getLaneSize();
+    int numberOfLaneOfRoads[] = {0,4,3,4,4,3};
+    int sum = 0;
+    for( int i = 0; i < road; i++) {
+        sum = sum + numberOfLaneOfRoads[i]+1;
+    }
+    double y = ((sum+lane)-1.0)*laneSize+laneSize/2.0;
+    return y;
+}
+double calculateAgentYaxis(int road,int lane)
 {
+    //roads and lanes indexs down to up
+    double laneSize = getLaneSize();
+    int numberOfLaneOfRoads[] = {0,4,3,4,4,3};
+    int sum = 0;
+    for( int i = 0; i < road; i++) {
+        sum = sum + numberOfLaneOfRoads[i]+1;
+    }
+    //if lane == 0 means sidewalk
+    double y = 0;
+    if(lane == 0){
+        y = (sum + numberOfLaneOfRoads[road])*laneSize+laneSize/2.0;
+    }
+    else
+    {
+        y = ((sum+lane)-1.0)*laneSize+laneSize/2.0;
+    }
+    
+    return y;
+}
+void drawAgent(int road,int lane,double x,int direction){
+    if (direction != 1 && direction != -1){
+        printf("ERROR : direction must 1 or -1\n");
+        exit(0);
+    }
+    double laneSize = getLaneSize();
+    double agentHeight = laneSize*0.8;
+    double y = calculateAgentYaxis(road,lane);
+    glColor3f(0.0, 1.0, 0.0);       // set color to red
+    glBegin(GL_POLYGON);            // list the vertices to draw a diamond
+    //direction 1 down to up
+    //direction -1 up to down
+    if(direction == 1){
+        glVertex2f(x - agentHeight/2.0, (y - agentHeight/2.0));
+        glVertex2f(x + agentHeight/2.0, (y - agentHeight/2.0));
+        glVertex2f(x, (y + agentHeight/2.0));
+        
+    }
+    else{
+        glVertex2f(x - agentHeight/2.0, (y + agentHeight/2.0));
+        glVertex2f(x + agentHeight/2.0, (y + agentHeight/2.0));
+        glVertex2f(x, (y - agentHeight/2.0));
+    }
+    glEnd();
     
 }
-void drawTruck(double x,double y)
-{
+void drawVehicle(int type,int road,int lane,double x)
+{   
+    double laneSize = getLaneSize();
+    double vehicleHeight = laneSize*0.8;
+    double vehicleWidth = vehicleHeight*((1.0*windowHeight)/(1.0*windowWidth));
+    if(type == 1){
+        vehicleWidth = vehicleHeight*2;
+    }
+    double y = calculateVehicleYaxis(road,lane);
 
+    glColor3f(0.0, 1.0, 0.0);       // set color to red
+    glBegin(GL_POLYGON);            // list the vertices to draw a diamond
+    // * - > *
+    // ^     |
+    // |      
+    // *
+    glVertex2f(x - vehicleWidth/2.0, (y - vehicleHeight/2.0));
+    glVertex2f(x - vehicleWidth/2.0, (y + vehicleHeight/2.0));
+    glVertex2f(x + vehicleWidth/2.0, (y + vehicleHeight/2.0));
+    glVertex2f(x + vehicleWidth/2.0, (y - vehicleHeight/2.0));
+    glEnd();
 }
+
+
+
 
 
 
@@ -64,30 +168,27 @@ void drawTruck(double x,double y)
 // display callback function
 //	This is called each time application needs to redraw itself.
 //-----------------------------------------------------------------------
-double getRoadSideWalkSize(){
-    double sidewalks_size = 1/(windowHeight/(1.0*totalLane));
-    return sidewalks_size;
-}
+
 void drawSideWalks()
 {   
     // number of lane of each road
-    int numberOfLane[] = {0,3,4,4,3,4};
+    int numberOfLaneOfRoads[] = {0,4,3,4,4,3};
     // total number of lane of top to down
     int totalNumberOfLane[] = {0,0,0,0,0,0};
     int sum = 0;
     for( int i = 0; i < 6; i++) {
-        sum = sum + numberOfLane[i]+1;
+        sum = sum + numberOfLaneOfRoads[i]+1;
         totalNumberOfLane[i] = sum;
     }
-    double sidewalks_size = getRoadSideWalkSize();
+    double sidewalks_size = getLaneSize();
     
     for( int i = 0; i < 6; i++) {
         glColor3f(0.0, 0.0, 0.0);       // set color to red
         glBegin(GL_POLYGON);            // list the vertices to draw a diamond
-        glVertex2f(0.0, 1.0-totalNumberOfLane[i]*sidewalks_size);
-        glVertex2f(0.0, 1.0-totalNumberOfLane[i]*sidewalks_size+sidewalks_size);
-        glVertex2f(1.0, 1.0-totalNumberOfLane[i]*sidewalks_size+sidewalks_size);
-        glVertex2f(1.0, 1.0-totalNumberOfLane[i]*sidewalks_size);
+        glVertex2f(0.0, totalNumberOfLane[i]*sidewalks_size);
+        glVertex2f(0.0, totalNumberOfLane[i]*sidewalks_size-sidewalks_size);
+        glVertex2f(1.0, totalNumberOfLane[i]*sidewalks_size-sidewalks_size);
+        glVertex2f(1.0, totalNumberOfLane[i]*sidewalks_size);
         glEnd();
         //printf("%.7lf\n",1.0-numberOfLane[i]*sidewalks_size);
     }
@@ -102,7 +203,6 @@ void drawBrokenLine(double y)
     int numberOfBrokenLines = 20.0;
     double brokenLineHeight = 1.0/windowHeight;
     double brokenLineWidth = 1.0/(2*numberOfBrokenLines);
-    printf("%.7lf\n",brokenLineHeight);
     for( int i = 0; i < 2*numberOfBrokenLines; i++) {
         if(i % 2==0){
             glColor3f(0.0, 0.0, 0.0);       // set color to red
@@ -118,7 +218,7 @@ void drawBrokenLine(double y)
 }
 void drawRoad()
 {   
-    double roadSize = getRoadSideWalkSize();
+    double roadSize = getLaneSize();
     for( int i = 0; i < totalLane; i++) {
         double y = 1.0*i;
         y = y*roadSize;
@@ -127,7 +227,29 @@ void drawRoad()
 
 
 }
+void drawCoin(int road,int lane,double x)
+{
+    //filled circle
+    float x1,y1,x2,y2;
+    float angle;
+    double radius=(getLaneSize()/2.0)*0.8;
 
+    x1 = x;
+    y1 = calculateVehicleYaxis(road,lane);
+    glColor3f(1.0,1.0,0.0);
+
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(x1,y1);
+
+    for (angle=1.0f;angle<361.0f;angle+=0.2)
+    {
+        x2 = x1+sin(angle)*radius*((1.0*windowHeight)/(1.0*windowWidth));
+        y2 = y1+cos(angle)*radius;
+        glVertex2f(x2,y2);
+    }
+
+    glEnd();
+}
 
 
 void myDisplay()
@@ -135,14 +257,24 @@ void myDisplay()
     glClear(GL_COLOR_BUFFER_BIT);       // clear the window
    
     
-    
     drawRoad();
     
     drawSideWalks();
-    //drawBrokenLine(0.3);
+
+    drawVehicle(1,4,2,0.3);
+
+    drawVehicle(0,5,2,vehicleX);
     
-     
-	
+    drawAgent(agentRoad,agentLane,agentX,agentDirection);
+    drawCoin(1,1,0.7);
+    drawCoin(3,2,0.1);
+
+    drawCoin(2,1,0.3);
+    drawCoin(4,3,0.8);
+
+    drawCoin(5,2,0.5);
+
+
      glFlush();				// force OpenGL to render now
 
      glutSwapBuffers();			// swap buffers
@@ -157,10 +289,38 @@ void myKeyboard(unsigned char c, int x, int y)
 {
     switch (c)
     {
-      case 'q':
-		  exit(0);			// exit
+        
+        case 'q':
+		    exit(0);	
+            break;
+        case '1':
+            timerDifficulty = 100 - 1*10;
+            break;
+        case '2':
+            timerDifficulty = 100 - 2*10;
+            break;
+        case '3':
+            timerDifficulty = 100 - 3*10;
+            break;
+        case '4':
+            timerDifficulty = 100 - 4*10;
+            break;
+        case '5':
+		    timerDifficulty = 100 - 5*10;
+            break;
+        case '6':
+            timerDifficulty = 100 - 6*10;
+            break;
+        case '7':
+            timerDifficulty = 100 - 7*10;
+            break;
+        case '8':
+		    timerDifficulty = 100 - 8*10;
+            break;
+        case '9':
+            timerDifficulty = 100 - 9*10;		// exit
+            break;
 	// other keyboard events may follow
-   
 	}
 
     glutPostRedisplay();		// request redisplay
@@ -170,7 +330,7 @@ void myMouse(int b, int s, int x, int y) {
 	switch  ( b ) {    // b indicates the button
 	case GLUT_LEFT_BUTTON:
 		if (s == GLUT_DOWN)      // button pressed
-			;
+			;//glutTimerFunc(NULL);
 		else if (s == GLUT_UP)   // button released
 			;
 		break;
@@ -190,6 +350,94 @@ void myTimeOut(int id) {
 // main program
 //	Where everything begins.
 //-----------------------------------------------------------------------
+int isVehicleCollision()
+{
+    return 0;
+}
+void createVehicle()
+{
+
+}
+void updateVehicles(){
+    vehicleX += vehicleV;
+}
+static void Timer(int value){
+    updateVehicles();
+    glutPostRedisplay();
+    // 100 milliseconds
+    glutTimerFunc(timerDifficulty, Timer, 0);
+}
+//from stackoverflow
+void updateAgent(int key)
+{
+    double laneSize = getLaneSize();
+    double agentHeight = laneSize*0.8;
+    double agentWidth = agentHeight;
+    int numberOfLaneOfRoads[] = {0,4,3,4,4,3};    
+    
+    if(key == GLUT_KEY_LEFT){
+        if(agentX - agentWidth/2.0 > agentWidth)
+            agentX = agentX - agentWidth/2.0;
+    }       
+    else if(key == GLUT_KEY_RIGHT){
+        if(agentX + agentWidth/2.0 < 1.0 - agentWidth)
+            agentX = agentX + agentWidth/2.0;
+    }    
+    else if(key == GLUT_KEY_DOWN){
+        int numberOfRoad = 5;
+        if(agentDirection == -1){
+            if(agentLane == 0){
+                int totalLane = numberOfLaneOfRoads[agentRoad];
+                if(agentRoad > 0){
+                    agentLane = totalLane;
+                }
+            }
+            else{
+                int totalLane = numberOfLaneOfRoads[agentRoad];
+                if(agentLane > 1){
+                    agentLane = agentLane - 1;
+                }
+                else{
+                    agentLane = 0;
+                    if(agentRoad > 0)
+                        agentRoad = agentRoad - 1;
+                    if(agentRoad == 0)
+                        agentDirection = 1;
+                }
+
+            }
+        }
+    }
+    else if(key == GLUT_KEY_UP){
+        int numberOfRoad = 5;
+        if(agentDirection == 1){
+            if(agentLane == 0){
+                if(agentRoad < numberOfRoad){
+                    agentLane = 1;
+                    agentRoad = agentRoad + 1;
+                } 
+            }
+            else{
+                int totalLane = numberOfLaneOfRoads[agentRoad];
+                if(agentLane < totalLane){
+                    agentLane = agentLane + 1;
+                }
+                else{
+                    agentLane = 0;
+                    if(agentRoad == numberOfRoad)
+                        agentDirection = -1;
+                }
+
+            }
+        }
+    }
+        printf("Up key is pressed\n");
+    
+}
+void catchKey(int key, int x, int y)
+{   
+    updateAgent(key);
+}
 
 int main(int argc, char **argv)
 {
@@ -208,9 +456,9 @@ int main(int argc, char **argv)
     glutKeyboardFunc(myKeyboard);   // call myKeyboard when key is hit
     glutReshapeFunc(myReshape);     // call myReshape if window is resized
     glutMouseFunc(myMouse);         // call in mouse event 
-    glutTimerFunc(2000, myTimeOut, 0);
-
+    Timer(0);
     myInit();				// our own initializations
+    glutSpecialFunc(catchKey);
 
     glutMainLoop();			// pass control to GLUT, start it running
     return 0;               // ANSI C expects this

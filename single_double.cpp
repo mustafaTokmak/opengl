@@ -7,7 +7,11 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include <GLUT/glut.h>
+#ifdef __APPLE__
+#  include <GLUT/glut.h>
+#else
+#  include <GL/glut.h>
+#endif
 
 GLfloat theta = 0.0;
 
@@ -88,8 +92,8 @@ int main(int argc, char** argv)
 	myinit();
 	glutDisplayFunc(myDisplay);
 	glutReshapeFunc(myReshape);
-	glutIdleFunc(myIdle);
-	//glutTimerFunc(20, myTimeout, 0);
+	//glutIdleFunc(myIdle);
+	glutTimerFunc(2, myTimeout, 0);
 	glutMouseFunc(myMouse);
 
 

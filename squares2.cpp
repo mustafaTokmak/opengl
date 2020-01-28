@@ -12,7 +12,11 @@ moved or resized by clearing the new window to black*/
 #include <time.h>
 #include <stdlib.h>
 
-#include <GLUT/glut.h>
+#ifdef __APPLE__
+#  include <GLUT/glut.h>
+#else
+#  include <GL/glut.h>
+#endif
 
 /* globals */
 
