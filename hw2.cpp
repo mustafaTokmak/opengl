@@ -12,14 +12,16 @@
 // global variable declarations
 
 GLint windowHeight=600, windowWidth=500;
-GLint totalLane = 24+1;
-GLdouble vehicleX = -0.1;
+const int totalNumberOfLane = 24;
+GLint totalLane = totalNumberOfLane+1;
+GLdouble vehicleX = 0.1;
 GLdouble vehicleV = 0.01;
 GLdouble agentX = 0.5;
 GLint agentRoad = 0;
 GLint agentLane = 0;
 GLint agentDirection = 1;
 GLint timerDifficulty = 100;
+GLint score = 0;
 //
 
 //-----------------------------------------------------------------------
@@ -27,16 +29,30 @@ GLint timerDifficulty = 100;
 //-----------------------------------------------------------------------
 //all even lane is right to left 
 // all odd lane is left to right
+struct lane
+{
+    int road;
+    int laneNo;
+    int velocity; // -5,5
+};
+
 struct vehicle 
 {  
    //car type is 0 
    //truck type is 1 
    int type;
-   int road; 
-   int lane; 
-   int velocity;
+   lane laneRef;
+   double xAxis;
 
 };
+
+// lanes + sidewalks
+struct lane laneArr[totalNumberOfLane];
+int totalVehicle = totalNumberOfLane*25;
+struct vehicle vehicleArr[totalNumberOfLane*25];
+int vehicleIndexArr[totalNumberOfLane];
+for(int i =0; i < totalNumberOfLane*25;i++)
+int vehicleIndex = 0;
 
 void myInit()
 {
@@ -142,7 +158,7 @@ void drawVehicle(int type,int road,int lane,double x)
     double vehicleHeight = laneSize*0.8;
     double vehicleWidth = vehicleHeight*((1.0*windowHeight)/(1.0*windowWidth));
     if(type == 1){
-        vehicleWidth = vehicleHeight*2;
+        vehicleWidth = vehicleWidth*2;
     }
     double y = calculateVehicleYaxis(road,lane);
 
@@ -250,13 +266,128 @@ void drawCoin(int road,int lane,double x)
 
     glEnd();
 }
+void createCoin()
+{
+    double coinXaxis = ((rand() % 500)*1.0) / 500;
+    int numberOfLaneOfRoads[] = {0,4,3,4,4,3}; 
+    int coinRoad = rand() % 6;
+    int coinLane;
+    if( coinRoad == 0 ){
+        coinLane = 0;
+    } 
+    else{
+        coinLane = rand() % numberOfLaneOfRoads[coinRoad];
+    }
+    //add coin(coinRoad,coinLane,coinXaxis)
 
+}
+int isVehicleAgentCollision()
+{   // vehicle base width  = getLaneSize()
+    //double vehicleWidth = vehicleHeight*((1.0*windowHeight)/(1.0*windowWidth));
+    // for all vehicles
+    //get agent x and y 
+    //get coin x and y 
+    //if y1== y2 and 
+    //if vehicle truck and |x1-x2| < vehicleWidth*1.5
+    //if vehicle car and |x1-x2| < vehicleWidth*1.0
+    // collision : game over
+
+}
+
+int isCoinAgentCollision()
+{
+    // for all coin 
+    //get agent x and y 
+    //get coin x and y 
+    //if y1== y2 and |x1-x2| < getLaneSize() * (0.8 - 0.1)
+    // collision : score add remove coin from coin array
+}
+
+int isVehicleCollision()
+{
+    //for all vehicle for all vehicle
+    return 0;
+}
+void initLanes()
+{
+    int index = 0;
+    int laneV; // from -5 to 5 = (rand() % 6 ) -10;
+    int numberOfLaneOfRoads[] = {0,4,3,4,4,3};
+    
+    for(int i =0;i < 6; i++){
+       
+        for(int j = 0; j < numberOfLaneOfRoads[i]+1; j++){
+            lane lanetemp;
+            lanetemp.laneNo = j;
+            lanetemp.road = i;
+            if(j==0)
+                lanetemp.velocity = 0;
+            else{
+                int v = (rand() % 5 ) + 1;
+                int dir = ((rand() %2) * 2) -1;
+                lanetemp.velocity = v*dir;
+            }
+                
+            laneArr[index] = lanetemp;
+            index += 1;
+        }
+    }
+    
+}
+
+void addVehicle(struct lane lane){
+    vehicle vehicleTemp;
+    int laneNo = lane.laneNo;
+    if(laneNo ==0)
+        return;
+    int roadNo = lane.road;
+    vehicleTemp.laneRef = lane;
+    vehicleTemp.type = rand() % 2;
+    vehicleTemp.xAxis = -0.1;
+    
+    vehicleArr[vehicleIndex] = vehicleTemp;
+    vehicleIndexArr[roadNo*4+laneNo] = vehicleIndex;
+    vehicleIndex = (vehicleIndex + 1) % totalVehicle;
+    
+}
+
+void initvehicles()
+{
+    for(int i=0;i<totalNumberOfLane;i++){
+        struct lane l = laneArr[i];
+        addVehicle(l);
+    }
+    for(int i=0;i<totalNumberOfLane*25;i++){
+        if (vehicleArr[i] != NULL)
+            printf("bilmem ne");
+    }
+}
+void drawAllVehicles(){
+
+}
+int isCreateVehicleAvaliable(int road,int lane){
+
+}
+void createNewVehicle()
+{
+        
+}
+
+void updateVehicles(){
+    double laneSize = getLaneSize();
+    double vehicleHeight = laneSize*0.8;
+    double vehicleWidth = vehicleHeight*((1.0*windowHeight)/(1.0*windowWidth));
+    double baseV = 1/((1.0*windowWidth)/vehicleWidth)*25.0;
+    //baseV is a 1 pixel 
+    //
+    double v = baseV * 1;
+    vehicleX += v;
+}
 
 void myDisplay()
 {
     glClear(GL_COLOR_BUFFER_BIT);       // clear the window
    
-    
     drawRoad();
     
     drawSideWalks();
@@ -264,6 +395,7 @@ void myDisplay()
     drawVehicle(1,4,2,0.3);
 
     drawVehicle(0,5,2,vehicleX);
+    
     
     drawAgent(agentRoad,agentLane,agentX,agentDirection);
     drawCoin(1,1,0.7);
@@ -294,31 +426,31 @@ void myKeyboard(unsigned char c, int x, int y)
 		    exit(0);	
             break;
         case '1':
-            timerDifficulty = 100 - 1*10;
+            timerDifficulty = 100 - 1*11;
             break;
         case '2':
-            timerDifficulty = 100 - 2*10;
+            timerDifficulty = 100 - 2*11;
             break;
         case '3':
-            timerDifficulty = 100 - 3*10;
+            timerDifficulty = 100 - 3*11;
             break;
         case '4':
-            timerDifficulty = 100 - 4*10;
+            timerDifficulty = 100 - 4*11;
             break;
         case '5':
-		    timerDifficulty = 100 - 5*10;
+		    timerDifficulty = 100 - 5*1;
             break;
         case '6':
-            timerDifficulty = 100 - 6*10;
+            timerDifficulty = 100 - 6*11;
             break;
         case '7':
-            timerDifficulty = 100 - 7*10;
+            timerDifficulty = 100 - 7*11;
             break;
         case '8':
-		    timerDifficulty = 100 - 8*10;
+		    timerDifficulty = 100 - 8*11;
             break;
         case '9':
-            timerDifficulty = 100 - 9*10;		// exit
+            timerDifficulty = 100 - 9*11;		// exit
             break;
 	// other keyboard events may follow
 	}
@@ -350,19 +482,11 @@ void myTimeOut(int id) {
 // main program
 //	Where everything begins.
 //-----------------------------------------------------------------------
-int isVehicleCollision()
-{
-    return 0;
-}
-void createVehicle()
-{
 
-}
-void updateVehicles(){
-    vehicleX += vehicleV;
-}
 static void Timer(int value){
     updateVehicles();
+    //vehicleX += vehicleV; 
+    
     glutPostRedisplay();
     // 100 milliseconds
     glutTimerFunc(timerDifficulty, Timer, 0);
@@ -401,8 +525,10 @@ void updateAgent(int key)
                     agentLane = 0;
                     if(agentRoad > 0)
                         agentRoad = agentRoad - 1;
-                    if(agentRoad == 0)
+                    if(agentRoad == 0){
                         agentDirection = 1;
+                        score += 1;
+                    }
                 }
 
             }
@@ -431,11 +557,14 @@ void updateAgent(int key)
             }
         }
     }
-        printf("Up key is pressed\n");
+    
     
 }
 void catchKey(int key, int x, int y)
 {   
+    int numberOfLaneOfRoads[] = {0,4,3,4,4,3};
+    int laneDirection = rand() % 5;
+    printf(" %d \n", laneDirection); 
     updateAgent(key);
 }
 
@@ -459,7 +588,8 @@ int main(int argc, char **argv)
     Timer(0);
     myInit();				// our own initializations
     glutSpecialFunc(catchKey);
-
+    initLanes();
+    initvehicles();
     glutMainLoop();			// pass control to GLUT, start it running
     return 0;               // ANSI C expects this
 }
