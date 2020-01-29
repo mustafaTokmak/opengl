@@ -3,6 +3,7 @@
 #include <stdio.h>			// C I/O (for sprintf) 
 #include <math.h>			// standard definitions
 #include <time.h>
+#include <unistd.h>
 
 #ifdef __APPLE__
 #  include <GLUT/glut.h>
@@ -21,7 +22,7 @@ GLdouble agentX = 0.5;
 GLint agentRoad = 0;
 GLint agentLane = 0;
 GLint agentDirection = 1;
-GLint timerDifficulty = 100;
+GLint timerDifficulty = 300;
 GLint score = 0;
 //
 
@@ -36,6 +37,12 @@ struct lane
     int laneNo;
     int velocity; // -5,5
 };
+struct coin
+{
+    int road;
+    int lane;
+    double xAxis;
+};
 
 struct vehicle 
 {  
@@ -46,7 +53,9 @@ struct vehicle
    double xAxis;
 
 };
-
+const int numberOfCoin = totalNumberOfLane;
+struct coin coinArr[numberOfCoin];
+int coinIndex = 0;
 // lanes + sidewalks
 struct lane laneArr[totalNumberOfLane];
 int totalVehicle = totalNumberOfLane*25;
@@ -135,7 +144,7 @@ void drawAgent(int road,int lane,double x,int direction){
     double laneSize = getLaneSize();
     double agentHeight = laneSize*0.8;
     double y = calculateAgentYaxis(road,lane);
-    glColor3f(0.0, 1.0, 0.0);       // set color to red
+    glColor3f(1.0, 0.0, 0.0);       // set color to red
     glBegin(GL_POLYGON);            // list the vertices to draw a diamond
     //direction 1 down to up
     //direction -1 up to down
@@ -207,7 +216,6 @@ void drawSideWalks()
         glVertex2f(1.0, totalNumberOfLane[i]*sidewalks_size-sidewalks_size);
         glVertex2f(1.0, totalNumberOfLane[i]*sidewalks_size);
         glEnd();
-        //printf("%.7lf\n",1.0-numberOfLane[i]*sidewalks_size);
     }
     
     
@@ -267,29 +275,68 @@ void drawCoin(int road,int lane,double x)
 
     glEnd();
 }
+void drawCoins()
+{
+    for(int i=0;i < numberOfCoin;i++){
+        if(coinArr[i].xAxis != -1.0){
+            drawCoin(coinArr[i].road,coinArr[i].lane,coinArr[i].xAxis);
+        }
+    }
+}
+void initCoins()
+{   
+    struct coin coinTemp;
+    coinTemp.xAxis = -1.0;
+    for(int i=0; i<numberOfCoin;i++){
+        coinArr[i] = coinTemp;
+    }
+}
 void createCoin()
 {
+    struct coin coinTemp;
     double coinXaxis = ((rand() % 500)*1.0) / 500;
     int numberOfLaneOfRoads[] = {0,4,3,4,4,3}; 
-    int coinRoad = rand() % 6;
+    int coinRoad = (rand() % 5) + 1;
     int coinLane;
-    if( coinRoad == 0 ){
-        coinLane = 0;
+    if( coinRoad != 0 ){
+        coinLane = (rand() % (numberOfLaneOfRoads[coinRoad] - 1)) + 1;
     } 
-    else{
-        coinLane = rand() % numberOfLaneOfRoads[coinRoad];
-    }
-    //add coin(coinRoad,coinLane,coinXaxis)
-
+    coinTemp.lane = coinLane;
+    coinTemp.road = coinRoad;
+    coinTemp.xAxis = coinXaxis;
+    coinArr[coinIndex] = coinTemp;
+    coinIndex = (coinIndex + 1) % numberOfCoin;
 }
 int isVehicleAgentCollision()
 {   
     double vehicleHeight  = getLaneSize();
-    double vehicleWidth = vehicleHeight*((1.0*windowHeight)/(1.0*windowWidth));
+    double vehicleWidth = vehicleHeight;
+    
     // for all vehicles
     for(int i=0;i<totalNumberOfLane*25;i++){
         if (vehicleArr[i].type != -1){
-            getAgent
+            
+            int road = vehicleArr[i].laneRef.road;
+            int lane = vehicleArr[i].laneRef.laneNo;
+            if (agentRoad == road && agentLane == lane){
+                if(vehicleArr[i].type == 0){
+                    if (abs(agentX - vehicleArr[i].xAxis ) < vehicleWidth){
+                        printf("GAME OVER");
+                        sleep(3);
+                        // pause game
+                        // show score
+                    }
+                }
+                else if(vehicleArr[i].type == 1){
+                    if (abs(agentX - vehicleArr[i].xAxis ) < vehicleWidth*1.5){
+                        printf("GAME OVER");
+                        sleep(3);
+                        // pause game
+                        // show score
+                    }
+                }
+                
+            }
         }     
     }
     //get agent x and y 
@@ -298,15 +345,25 @@ int isVehicleAgentCollision()
     //if vehicle truck and |x1-x2| < vehicleWidth*1.5
     //if vehicle car and |x1-x2| < vehicleWidth*1.0
     // collision : game over
+    return 0;
 
 }
 void printScore()
 {
-
+    printf("%d",score);
 }
 int isCoinAgentCollision()
-{
-    // for all coin 
+{   double laneSize = getLaneSize();
+    for(int i=0;i < numberOfCoin;i++){
+        if(coinArr[i].xAxis != -1.0){
+            if(coinArr[i].lane == agentLane && coinArr[i].road == agentRoad){
+                if(abs(coinArr[i].xAxis - agentX) < laneSize*0.8){
+                    score = score + 5; // score for each coin
+                    coinArr[i].xAxis = -1.0;
+                }
+            }
+        }
+    }
     //get agent x and y 
     //get coin x and y 
     //if y1== y2 and |x1-x2| < getLaneSize() * (0.8 - 0.1)
@@ -383,8 +440,6 @@ void initvehicles()
     }
     for(int i=0;i<totalNumberOfLane*25;i++){
         if (vehicleArr[i].type != -1){
-            printf("%d",i);
-            printf("bilmem ne\n");
         }
             
     }
@@ -395,6 +450,7 @@ void drawAllVehicles(){
             drawVehicle(vehicleArr[i].type,vehicleArr[i].laneRef.road,vehicleArr[i].laneRef.laneNo,vehicleArr[i].xAxis);
         }     
     }
+    printf("%d",score);
 }
 int isCreateVehicleAvaliable(int road,int lane){
 
@@ -425,6 +481,7 @@ void updateVehicles(){
             
         }     
     }
+    //isVehicleAgentCollision();
 }
 
 void myDisplay()
@@ -436,26 +493,38 @@ void myDisplay()
     drawSideWalks();
 
     drawAllVehicles();
-    
+    isCoinAgentCollision();
     drawAgent(agentRoad,agentLane,agentX,agentDirection);
-    drawCoin(1,1,0.7);
-    drawCoin(3,2,0.1);
+    
+    drawCoins();
 
-    drawCoin(2,1,0.3);
-    drawCoin(4,3,0.8);
+    glFlush();				// force OpenGL to render now
 
-    drawCoin(5,2,0.5);
+    glutSwapBuffers();			// swap buffers
+    isVehicleAgentCollision();
 
-
-     glFlush();				// force OpenGL to render now
-
-     glutSwapBuffers();			// swap buffers
 }
 
 //-----------------------------------------------------------------------
 // keyboard callback function
 //	This is called whenever a keyboard key is hit.
 //-----------------------------------------------------------------------
+// Called if timer event occurs
+void myTimeOut(int id) {
+	// advance the state of animation incrementally
+
+	glutPostRedisplay();			  // request redisplay
+	glutTimerFunc(2000, myTimeOut, 0);  // request next timer event
+}
+static void Timer(int value){
+    updateVehicles();
+    createCoin();
+    //vehicleX += vehicleV; 
+    
+    glutPostRedisplay();
+    // 100 milliseconds
+    glutTimerFunc(timerDifficulty, Timer, 0);
+}
 
 void myKeyboard(unsigned char c, int x, int y)
 {
@@ -488,6 +557,7 @@ void myKeyboard(unsigned char c, int x, int y)
             break;
         case '8':
 		    timerDifficulty = 100 - 8*11;
+            
             break;
         case '9':
             timerDifficulty = 100 - 9*11;		// exit
@@ -510,27 +580,13 @@ void myMouse(int b, int s, int x, int y) {
 	}
 }
 
-// Called if timer event occurs
-void myTimeOut(int id) {
-	// advance the state of animation incrementally
 
-	glutPostRedisplay();			  // request redisplay
-	glutTimerFunc(2000, myTimeOut, 0);  // request next timer event
-}
 
 //-----------------------------------------------------------------------
 // main program
 //	Where everything begins.
 //-----------------------------------------------------------------------
 
-static void Timer(int value){
-    updateVehicles();
-    //vehicleX += vehicleV; 
-    
-    glutPostRedisplay();
-    // 100 milliseconds
-    glutTimerFunc(timerDifficulty, Timer, 0);
-}
 //from stackoverflow
 void updateAgent(int key)
 {
@@ -604,7 +660,7 @@ void catchKey(int key, int x, int y)
 {   
     int numberOfLaneOfRoads[] = {0,4,3,4,4,3};
     int laneDirection = rand() % 5;
-    printf(" %d \n", laneDirection); 
+    printf("")
     updateAgent(key);
 }
 
@@ -630,6 +686,7 @@ int main(int argc, char **argv)
     glutSpecialFunc(catchKey);
     initLanes();
     initvehicles();
+    initCoins();
     glutMainLoop();			// pass control to GLUT, start it running
     return 0;               // ANSI C expects this
 }
