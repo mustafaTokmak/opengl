@@ -2,6 +2,7 @@
 
 #include <stdio.h>			// C I/O (for sprintf) 
 #include <math.h>			// standard definitions
+#include <time.h>
 
 #ifdef __APPLE__
 #  include <GLUT/glut.h>
@@ -51,7 +52,7 @@ struct lane laneArr[totalNumberOfLane];
 int totalVehicle = totalNumberOfLane*25;
 struct vehicle vehicleArr[totalNumberOfLane*25];
 int vehicleIndexArr[totalNumberOfLane];
-for(int i =0; i < totalNumberOfLane*25;i++)
+
 int vehicleIndex = 0;
 
 void myInit()
@@ -282,9 +283,15 @@ void createCoin()
 
 }
 int isVehicleAgentCollision()
-{   // vehicle base width  = getLaneSize()
-    //double vehicleWidth = vehicleHeight*((1.0*windowHeight)/(1.0*windowWidth));
+{   
+    double vehicleHeight  = getLaneSize();
+    double vehicleWidth = vehicleHeight*((1.0*windowHeight)/(1.0*windowWidth));
     // for all vehicles
+    for(int i=0;i<totalNumberOfLane*25;i++){
+        if (vehicleArr[i].type != -1){
+            getAgent
+        }     
+    }
     //get agent x and y 
     //get coin x and y 
     //if y1== y2 and 
@@ -293,7 +300,10 @@ int isVehicleAgentCollision()
     // collision : game over
 
 }
+void printScore()
+{
 
+}
 int isCoinAgentCollision()
 {
     // for all coin 
@@ -343,8 +353,11 @@ void addVehicle(struct lane lane){
     int roadNo = lane.road;
     vehicleTemp.laneRef = lane;
     vehicleTemp.type = rand() % 2;
-    vehicleTemp.xAxis = -0.1;
-    
+    if (lane.velocity < 0)
+        vehicleTemp.xAxis = 1.1;//((rand() % 10)*1.0)/10;  //-0.1;
+    else
+        vehicleTemp.xAxis = -0.1;
+    vehicleTemp.xAxis = ((rand() % 10)*1.0)/10;
     vehicleArr[vehicleIndex] = vehicleTemp;
     vehicleIndexArr[roadNo*4+laneNo] = vehicleIndex;
     vehicleIndex = (vehicleIndex + 1) % totalVehicle;
@@ -353,17 +366,35 @@ void addVehicle(struct lane lane){
 
 void initvehicles()
 {
+    for(int i =0; i < totalNumberOfLane*25;i++){
+        vehicleArr[i].type=-1;
+    }
+    for(int i=0;i<totalNumberOfLane;i++){
+        struct lane l = laneArr[i];
+        addVehicle(l);
+    }
+    for(int i=0;i<totalNumberOfLane;i++){
+        struct lane l = laneArr[i];
+        addVehicle(l);
+    }
     for(int i=0;i<totalNumberOfLane;i++){
         struct lane l = laneArr[i];
         addVehicle(l);
     }
     for(int i=0;i<totalNumberOfLane*25;i++){
-        if (vehicleArr[i] != NULL)
-            printf("bilmem ne");
+        if (vehicleArr[i].type != -1){
+            printf("%d",i);
+            printf("bilmem ne\n");
+        }
+            
     }
 }
 void drawAllVehicles(){
-
+    for(int i=0;i<totalNumberOfLane*25;i++){
+        if (vehicleArr[i].type != -1){
+            drawVehicle(vehicleArr[i].type,vehicleArr[i].laneRef.road,vehicleArr[i].laneRef.laneNo,vehicleArr[i].xAxis);
+        }     
+    }
 }
 int isCreateVehicleAvaliable(int road,int lane){
 
@@ -377,11 +408,23 @@ void updateVehicles(){
     double laneSize = getLaneSize();
     double vehicleHeight = laneSize*0.8;
     double vehicleWidth = vehicleHeight*((1.0*windowHeight)/(1.0*windowWidth));
-    double baseV = 1/((1.0*windowWidth)/vehicleWidth)*25.0;
+    double baseV = 1/((1.0*windowWidth)/vehicleWidth)*25.0 * 3;
     //baseV is a 1 pixel 
     //
     double v = baseV * 1;
-    vehicleX += v;
+    
+    for(int i=0;i<totalNumberOfLane*25;i++){
+        if (vehicleArr[i].type != -1){
+            double xAxis = (vehicleArr[i].xAxis + (baseV *vehicleArr[i].laneRef.velocity));
+            if(xAxis > -0.1 && xAxis < 1.1){
+                vehicleArr[i].xAxis = xAxis;  
+            }
+            else{
+                vehicleArr[i].type = -1;
+            }
+            
+        }     
+    }
 }
 
 void myDisplay()
@@ -392,10 +435,7 @@ void myDisplay()
     
     drawSideWalks();
 
-    drawVehicle(1,4,2,0.3);
-
-    drawVehicle(0,5,2,vehicleX);
-    
+    drawAllVehicles();
     
     drawAgent(agentRoad,agentLane,agentX,agentDirection);
     drawCoin(1,1,0.7);
@@ -569,8 +609,8 @@ void catchKey(int key, int x, int y)
 }
 
 int main(int argc, char **argv)
-{
-    				
+{   
+    srand ( time(NULL) );
     glutInit(&argc, argv);   //Initialize glut and gl
     glutInitDisplayMode(		
 		GLUT_DOUBLE |		// double buffering
