@@ -17,14 +17,22 @@
 
 using namespace std;
 
+int ispause = 0;
 int angle = 1;
 
 static void Timer(int value){
     angle += 0.1;
     glutPostRedisplay();
     // 100 milliseconds
-    glutTimerFunc(100, Timer, 0);
+    if(!ispause){
+        glutTimerFunc(100, Timer, value);
+    }
+
+
 }
+
+
+
 
 
 void init(){
@@ -43,6 +51,33 @@ void display(){
     glFlush();
 
 }
+void myKeyboard(unsigned char c, int x, int y)
+{
+    switch (c)
+    {
+        
+        case 'q':
+		    exit(0);	
+            break;
+        case 'p':
+            ispause = 1;
+            break;
+	}
+
+    glutPostRedisplay();		// request redisplay
+}
+
+void myMouse(int b, int s, int x, int y) {
+	switch  ( b ) {    // b indicates the button
+	case GLUT_LEFT_BUTTON:
+		if (s == GLUT_DOWN){      // button pressed
+            angle += 0.1;
+            glutPostRedisplay();	
+        }	//glutTimerFunc(NULL);
+		break;
+		//... other button events may follow
+	}
+}
 
 
 int main(int argc, char *argv[]){
@@ -53,6 +88,8 @@ int main(int argc, char *argv[]){
     glutInitWindowSize(400,300);
     glutInitWindowPosition(200,100);
     glutCreateWindow("Simulation App");
+    glutKeyboardFunc(myKeyboard);   // call myKeyboard when key is hit
+    glutMouseFunc(myMouse);
 
     init();
     glutDisplayFunc(display);
