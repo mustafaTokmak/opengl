@@ -1,0 +1,12 @@
+ g++ Assingnment1.cpp -o Assingnment1 -lGLEW -lGLU -lGL -lglut
+
+
+komutu ile compile edilir.
+
+./Assignment1
+
+komutu ile çalıştırılır.
+
+1-9 arası tuşlar ile araç sıklığı azaltılıp artırılabilir.
+
+w-e-r-t-y-u tuşları ile coin oluşturulma/yok olma hızı w en yavaş u en hızlı olmak üzere değiştirilebilir.

@@ -306,16 +306,18 @@ void GameOver(){
 }
 void createCoin()
 {
+    struct coin coinTemp;
     int prob = rand() % (20 -coin_freq);
     if (prob != 0)
+        
         return;
-    struct coin coinTemp;
+    
     double coinXaxis = ((rand() % 500)*1.0) / 500;
     int numberOfLaneOfRoads[] = {0,4,3,4,4,3}; 
     int coinRoad = (rand() % 5) + 1;
     int coinLane;
     if( coinRoad != 0 ){
-        coinLane = (rand() % (numberOfLaneOfRoads[coinRoad] - 1)) + 1;
+        coinLane = (rand() % (numberOfLaneOfRoads[coinRoad])) + 1;
     } 
     coinTemp.lane = coinLane;
     coinTemp.road = coinRoad;
